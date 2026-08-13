@@ -16,7 +16,7 @@ class TextNode:
         self.url = url
 
     def __eq__(self, other) -> bool:
-        return (self.text == other.text and self.self.text_type == other.self.text_type and self.url == other.self.url)
+        return (self.text == other.text and self.text_type == other.text_type and self.url == other.url)
 
     def __repr__(self) -> str:
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
