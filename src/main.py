@@ -55,12 +55,28 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as file:
         file.write(full_html)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    if os.path.exists(dir_path_content):
+         content_directory = os.listdir(dir_path_content)
+         for content_entry in content_directory:
+            content_path = os.path.join(dir_path_content, content_entry)
+            public_path = os.path.join(dest_dir_path, content_entry)
+            if os.path.isdir(content_path):
+                generate_pages_recursive(content_path, template_path, public_path)
+            elif content_entry.endswith(".md"):
+                path_with_no_ending, _ = os.path.splitext(public_path)
+                html_path = path_with_no_ending + ".html"
+                generate_page(content_path, template_path, html_path)
+
 
 def main():
     copy_static("static", "public")
     print(TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev"))
+    generate_pages_recursive("content", "template.html", "public")
+
+
     #testing some stuff
-    generate_page("content/index.md", "template.html", "public/index.html")
+
     #end of testing block
 
 if __name__ == "__main__":
