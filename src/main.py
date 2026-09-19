@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 from textnode import TextNode, TextType
 from text_block import markdown_to_html_node
@@ -34,7 +35,7 @@ def extract_title(markdown):
             return line[2:].strip()
     raise Exception("no first header found!")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     with open(from_path, "r") as file:
@@ -45,8 +46,12 @@ def generate_page(from_path, template_path, dest_path):
 
     html = markdown_to_html_node(markdown).to_html()
     title = extract_title(markdown)
+
     full_html = template.replace("{{ Title }}", title)
     full_html = full_html.replace("{{ Content }}", html)
+
+    full_html = full_html.replace('href="/', f'href="{basepath}')
+    full_html = full_html.replace('src="/', f'src="{basepath}')
     directory = os.path.dirname(dest_path)
 
     if directory and not os.path.exists(directory):
@@ -55,29 +60,29 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as file:
         file.write(full_html)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     if os.path.exists(dir_path_content):
          content_directory = os.listdir(dir_path_content)
          for content_entry in content_directory:
             content_path = os.path.join(dir_path_content, content_entry)
-            public_path = os.path.join(dest_dir_path, content_entry)
+            docs_path = os.path.join(dest_dir_path, content_entry)
             if os.path.isdir(content_path):
-                generate_pages_recursive(content_path, template_path, public_path)
+                generate_pages_recursive(content_path, template_path, docs_path, basepath)
             elif content_entry.endswith(".md"):
-                path_with_no_ending, _ = os.path.splitext(public_path)
+                path_with_no_ending, _ = os.path.splitext(docs_path)
                 html_path = path_with_no_ending + ".html"
-                generate_page(content_path, template_path, html_path)
+                generate_page(content_path, template_path, html_path, basepath)
 
 
 def main():
-    copy_static("static", "public")
+    basepath = "/"
+
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+
+    copy_static("static", "docs")
     print(TextNode("This is some anchor text", TextType.LINK, "https://www.boot.dev"))
-    generate_pages_recursive("content", "template.html", "public")
-
-
-    #testing some stuff
-
-    #end of testing block
+    generate_pages_recursive("content", "template.html", "docs", basepath)
 
 if __name__ == "__main__":
     main()
