@@ -1,0 +1,1 @@
+python3 src/main.py "/bootdev-build-a-static-site-generator/"
